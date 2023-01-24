@@ -1,8 +1,32 @@
 # Minimum required version of CMake
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-IF(COMMAND CMAKE_POLICY)
-  CMAKE_POLICY(SET CMP0003 NEW)
-ENDIF(COMMAND CMAKE_POLICY)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
+
+
+# example:
+# find_path_by_regex(VARIABLE_TO_RETURN_FOUND_PATH "boost_*[0-9]_*[0-9]_*[0-9]"
+# PATHS ${LIST_OF_PATHS} )
+function(find_path_by_regex var_out regex_in)
+    foreach(item ${ARGN})
+        if(item STREQUAL "PATHS")
+            set(itemmode "PATHS")
+            continue()
+        endif()
+        if(itemmode STREQUAL "PATHS")
+           FILE(GLOB found_path "${item}/${regex_in}")
+           message(STATUS found_path:${found_path})
+           if(found_path)
+               set(${var_out} ${found_path} PARENT_SCOPE)
+               return()
+           endif()
+        endif()
+    endforeach()
+endfunction()
+
+
+
+# temporarily variables need to be set as external parameters
+# path to thirdparty dirs
+set(WINDOWS_EXTERNAL_LIBS_PATH  "D:/trymix/test_omi" "D:/zero-devel")
 
 # Set CMake project name
 PROJECT(SPOOLES)
@@ -34,19 +58,24 @@ endif(NOT M_LIBRARY)
 # assumed that pthread binary placed on the same
 # level with spooles directory
 if(MSVC)
-  if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    FILE(GLOB pthread_DIR
-         "../pthreads-w64-*[0-9]-*[0-9]-*[0-9]"
-    )
-  else( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    FILE(GLOB pthread_DIR
-         "../pthreads-w32-*[0-9]-*[0-9]-*[0-9]"
-    )
-  endif( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+  find_path_by_regex(pthread_DIR "pthreads-w32-*[0-9]-*[0-9]-*[0-9]" PATHS ${WINDOWS_EXTERNAL_LIBS_PATH})
+
   FIND_PATH(pthread_INCLUDE_DIR pthread.h
-      HINTS ${pthread_DIR}/Pre-built.2/include
+    HINTS ${pthread_DIR} PATH_SUFFIXES Pre-built.2/include
+    REQUIRED
   )
-  INCLUDE_DIRECTORIES( ${pthread_INCLUDE_DIR} )
+
+  FIND_LIBRARY(pthread_LIB pthreadVC2 REQUIRED
+    HINTS ${pthread_DIR}/Pre-built.2/lib/x64
+    REQUIRED
+  )
+
+  FIND_FILE(pthread_DLL Pre-built.2/dll/x64/pthreadVC2.dll
+    HINTS ${pthread_DIR}
+    REQUIRED
+  )
+
+  message(WARNING ${pthread_INCLUDE_DIR})
 endif(MSVC)
 
 

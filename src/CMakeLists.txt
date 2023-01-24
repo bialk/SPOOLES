@@ -2,10 +2,6 @@
 #  CMakeLists.txt file for SPOOLES sources
 #############################################
 
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include
-  )
-
 set(A2_SRCS
   A2/IO.c
   A2/QRreduce.c
@@ -487,7 +483,9 @@ set(MPI_SRCS
   )
 
 add_library(spooles ${SPOOLES_SRCS})
-
+target_compile_options(spooles PRIVATE "-D_TIMESPEC_DEFINED")
+target_include_directories(spooles PRIVATE "${pthread_INCLUDE_DIR}"
+                                   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 
 # Local Variables:
 # tab-width: 8
