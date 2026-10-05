@@ -1,6 +1,7 @@
 /*  init.c  */
 
 #include "Lock.h"
+#include "SpoolesThread.h"
 
 /*--------------------------------------------------------------------*/
 /*
@@ -33,18 +34,11 @@ if ( lockflag > 0 ) {
    allocate the lock
    -----------------
 */
-#if THREAD_TYPE == TT_SOLARIS
-   ALLOCATE(lock->mutex, mutex_t, 1) ;
-   if ( lockflag == 1 ) {
-      mutex_init(lock->mutex, USYNC_THREAD, NULL) ;
-   } else if ( lockflag == 2 ) {
-      mutex_init(lock->mutex, USYNC_PROCESS, NULL) ;
+   lock->mutex = SpoolesMutex_new() ;
+   if ( lock->mutex == NULL ) {
+      fprintf(stderr, "\n fatal error in Lock_init(), unable to allocate mutex\n") ;
+      exit(-1) ;
    }
-#endif
-#if THREAD_TYPE == TT_POSIX
-   ALLOCATE(lock->mutex, pthread_mutex_t, 1) ;
-   pthread_mutex_init(lock->mutex, NULL) ;
-#endif
 }
 return ; }
 

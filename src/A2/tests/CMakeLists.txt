@@ -6,7 +6,7 @@ include_directories(
 #  ************ norms tests *************
 #
 add_executable(tester_spooles_norms test_norms.c)
-target_link_libraries(tester_spooles_norms spooles ${M_LIBRARY})
+target_link_libraries(tester_spooles_norms PRIVATE SPOOLES::spooles)
 set(msglvl   2)
 set(msgFile  stdout)
 set(type     2)
@@ -25,7 +25,7 @@ add_test(spooles_norms  tester_spooles_norms ${msglvl} ${msgFile} ${type} ${nrow
 #  ************ QR tests *************
 #
 add_executable(tester_spooles_QR testQR.c)
-target_link_libraries(tester_spooles_QR spooles ${M_LIBRARY})
+target_link_libraries(tester_spooles_QR PRIVATE SPOOLES::spooles)
 
 set(msglvl   2)
 set(msgFile  stdout)

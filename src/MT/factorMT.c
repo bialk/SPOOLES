@@ -1,6 +1,7 @@
 /*  factorMT.c  */
 
 #include "spoolesMT.h"
+#include "SpoolesThread.h"
 #include "Ideq.h"
 #include "timings.h"
 
@@ -293,38 +294,20 @@ if ( msglvl > 1 ) {
    fprintf(msgFile, "\n CPU %8.3f : thread join time", t2 - t1) ;
 }
 #endif
-#if THREAD_TYPE == TT_POSIX
 /*
    -------------
    POSIX threads
    -------------
 */
 {
-pthread_t        *tids ;
-pthread_attr_t   attr  ;
-void             *status ;
-/*
-#####   NOTE: for SGI machines, this command must be present
-#####         for the thread scheduling to be efficient.
-#####         this is NOT a POSIX call, but SGI needs it anyway
-pthread_setconcurrency(nthread) ;
-*/
-pthread_attr_init(&attr) ;
-/*
-pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) ;
-*/
-pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS) ;
-ALLOCATE(tids, pthread_t, nthread) ;
+SpoolesThread    *tids ;
+ALLOCATE(tids, SpoolesThread, nthread) ;
 MARKTIME(t1) ;
 for ( myid = 0, data = dataObjects ; myid < nthread ; myid++, data++ ) {
-/*
-   rc = pthread_create(&tids[myid], &attr, 
-                       FrontMtx_workerFactor, data) ;
-*/
-   rc = pthread_create(&tids[myid], NULL, FrontMtx_workerFactor, data) ;
+   rc = SpoolesThread_create(&tids[myid], FrontMtx_workerFactor, data) ;
    if ( rc != 0 ) {
       fprintf(stderr, 
-              "\n fatal error, myid = %d, rc = %d from pthread_create",
+              "\n fatal error, myid = %d, rc = %d from SpoolesThread_create",
               myid, rc) ;
       exit(-1) ;
    } else if ( msglvl > 1 ) {
@@ -337,16 +320,20 @@ if ( msglvl > 1 ) {
 }
 MARKTIME(t1) ;
 for ( myid = 0 ; myid < nthread ; myid++ ) {
-   pthread_join(tids[myid], &status) ;
+   rc = SpoolesThread_join(&tids[myid]) ;
+   if ( rc != 0 ) {
+      fprintf(stderr,
+              "\n fatal error, myid = %d, rc = %d from SpoolesThread_join",
+              myid, rc) ;
+      exit(-1) ;
+   }
 }
 MARKTIME(t2) ;
 if ( msglvl > 1 ) {
    fprintf(msgFile, "\n CPU %8.3f : thread join time", t2 - t1) ;
 }
 FREE(tids) ;
-pthread_attr_destroy(&attr) ;
 }
-#endif
 /*
    --------------------------------------------
    get a pointer to any postponed root chevrons
@@ -446,13 +433,6 @@ int           *nactiveChild, *owners, *par, *stats ;
 IP            **heads ;
 IV            *ownersIV, pivotsizesIV ;
 Tree          *tree ;
-#if THREAD_TYPE == TT_POSIX
-/*
-fprintf(stdout, "\n ### inside workerFactor, pthread_self() = %d", 
-        pthread_self()) ;
-fflush(stdout) ;
-*/
-#endif
 /*
    -------------------------------
    extract pointers and dimensions
@@ -484,19 +464,6 @@ if ( msglvl > 2 ) {
    fprintf(stdout, 
            "\n ### inside workerFactor, myid = %d, thr_self() = %d", 
            myid, thr_self()) ;
-   fflush(stdout) ;
-}
-#endif
-#if THREAD_TYPE == TT_POSIX
-if ( msglvl > 2 ) {
-
-#ifdef _MSC_VER
-   fprintf(stdout, "\n ### inside workerFactor, myid = %d"
-                   ", pthread_self() = %d", myid, (int)pthread_self().x) ;
-#else
-   fprintf(stdout, "\n ### inside workerFactor, myid = %d"
-                   ", pthread_self() = %d", myid, (int)pthread_self()) ;
-#endif
    fflush(stdout) ;
 }
 #endif

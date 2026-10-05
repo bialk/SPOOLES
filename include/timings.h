@@ -10,7 +10,7 @@
 #include <winsock2.h>
 #include <sys/utime.h>
 #define __need_clock_t
-#include < time.h >
+#include <time.h>
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
@@ -90,4 +90,3 @@ static struct timezone TZ ;
    t = (TV.tv_sec + 0.000001*TV.tv_usec)
 
 #endif
-

@@ -1,0 +1,4 @@
+add_executable(tester_spooles_std_thread test_std_thread.cpp)
+target_link_libraries(tester_spooles_std_thread PRIVATE SPOOLES::spooles)
+
+add_test(NAME spooles_std_thread COMMAND tester_spooles_std_thread)

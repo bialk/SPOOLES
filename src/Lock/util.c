@@ -1,6 +1,7 @@
 /*  util.c  */
 
 #include "Lock.h"
+#include "SpoolesThread.h"
 
 #define MYDEBUG 0
 
@@ -30,31 +31,14 @@ if ( lock == NULL ) {
 fprintf(stdout, "\n inside Lock_lock()") ;
 fflush(stdout) ;
 */
-#if THREAD_TYPE == TT_SOLARIS
 #if MYDEBUG > 0
-fprintf(stdout, "\n thread %d, lock %p : Lock_lock : solaris locking", 
-        thr_self(), lock->mutex) ;
+fprintf(stdout, "\n Lock_lock : std::mutex locking") ;
 fflush(stdout) ;
 #endif
-mutex_lock(lock->mutex) ;
+SpoolesMutex_lock(lock->mutex) ;
 #if MYDEBUG > 0
-fprintf(stdout, 
-        "\n thread %d, lock %p : Lock_lock : solaris lock done", 
-        thr_self(), lock->mutex) ;
+fprintf(stdout, "\n Lock_lock : std::mutex lock done") ;
 fflush(stdout) ;
-#endif
-#endif
-
-#if THREAD_TYPE == TT_POSIX
-#if MYDEBUG > 0
-fprintf(stdout, "\n Lock_lock : posix locking") ;
-fflush(stdout) ;
-#endif
-pthread_mutex_lock(lock->mutex) ;
-#if MYDEBUG > 0
-fprintf(stdout, "\n Lock_lock : posix lock done") ;
-fflush(stdout) ;
-#endif
 #endif
 lock->nlocks++ ;
 
@@ -87,32 +71,14 @@ lock->nunlocks++ ;
 fprintf(stdout, "\n inside Lock_unlock()") ;
 fflush(stdout) ;
 */
-#if THREAD_TYPE == TT_SOLARIS
 #if MYDEBUG > 0
-fprintf(stdout, 
-        "\n thread %d, lock %p : Lock_unlock : solaris unlocking", 
-        thr_self(), lock->mutex) ;
+fprintf(stdout, "\n Lock_unlock : std::mutex unlocking") ;
 fflush(stdout) ;
 #endif
-mutex_unlock(lock->mutex) ;
+SpoolesMutex_unlock(lock->mutex) ;
 #if MYDEBUG > 0
-fprintf(stdout, 
-        "\n thread %d, lock %p : Lock_unlock : solaris unlocking done", 
-        thr_self(), lock->mutex) ;
+fprintf(stdout, "\n Lock_unlock : std::mutex unlocking done") ;
 fflush(stdout) ;
-#endif
-#endif
-
-#if THREAD_TYPE == TT_POSIX
-#if MYDEBUG > 0
-fprintf(stdout, "\n Lock_unlock : posix unlocking") ;
-fflush(stdout) ;
-#endif
-pthread_mutex_unlock(lock->mutex) ;
-#if MYDEBUG > 0
-fprintf(stdout, "\n Lock_unlock : posix unlocking done") ;
-fflush(stdout) ;
-#endif
 #endif
 
 return ; }

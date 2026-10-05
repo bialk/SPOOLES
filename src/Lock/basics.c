@@ -1,6 +1,7 @@
 /*  basics.c  */
 
 #include "Lock.h"
+#include "SpoolesThread.h"
 
 #define   MYDEBUG 0
 
@@ -79,13 +80,7 @@ if ( lock->mutex != NULL ) {
    destroy and free the lock
    -------------------------
 */
-#if THREAD_TYPE == TT_SOLARIS
-   mutex_destroy(lock->mutex) ;
-#endif
-#if THREAD_TYPE == TT_POSIX
-   pthread_mutex_destroy(lock->mutex) ;
-#endif
-   FREE(lock->mutex) ;
+   SpoolesMutex_free(lock->mutex) ;
 }
 /*
    ----------------------

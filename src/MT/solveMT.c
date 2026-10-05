@@ -1,6 +1,7 @@
 /*  solveMT.c  */
 
 #include "spoolesMT.h"
+#include "SpoolesThread.h"
 #include "Ideq.h"
 #include "timings.h"
 #include "SolveMap.h"
@@ -239,35 +240,20 @@ if ( msglvl > 1 ) {
    fflush(msgFile) ;
 }
 #endif
-#if THREAD_TYPE == TT_POSIX
 /*
    -------------
    POSIX threads
    -------------
 */
 {
-pthread_attr_t   attr ;
-pthread_t        *tids ;
-void             *status ;
-/*
-#####   NOTE: for SGI machines, this command must be present
-#####         for the thread scheduling to be efficient.
-#####         this is NOT a POSIX call, but SGI needs it anyway
-pthread_setconcurrency(nthread) ;
-*/
+SpoolesThread    *tids ;
 MARKTIME(t1) ;
-pthread_attr_init(&attr) ;
-/*
-pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) ;
-*/
-pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS) ;
-ALLOCATE(tids, pthread_t, nthread) ;
+ALLOCATE(tids, SpoolesThread, nthread) ;
 for ( myid = 0, data = dataObjects ; myid < nthread ; myid++, data++ ) {
-   rc = pthread_create(&tids[myid], &attr,
-                       FrontMtx_workerSolve, data) ;
+   rc = SpoolesThread_create(&tids[myid], FrontMtx_workerSolve, data) ;
    if ( rc != 0 ) {
       fprintf(stderr,
-              "\n fatal error, myid = %d, rc = %d from pthread_create",
+              "\n fatal error, myid = %d, rc = %d from SpoolesThread_create",
               myid, rc) ;
       exit(-1) ;
    }
@@ -279,7 +265,13 @@ if ( msglvl > 1 ) {
 }
 MARKTIME(t1) ;
 for ( myid = 0 ; myid < nthread ; myid++ ) {
-   pthread_join(tids[myid], &status) ;
+   rc = SpoolesThread_join(&tids[myid]) ;
+   if ( rc != 0 ) {
+      fprintf(stderr,
+              "\n fatal error, myid = %d, rc = %d from SpoolesThread_join",
+              myid, rc) ;
+      exit(-1) ;
+   }
 }
 MARKTIME(t2) ;
 if ( msglvl > 1 ) {
@@ -287,9 +279,7 @@ if ( msglvl > 1 ) {
    fflush(msgFile) ;
 }
 FREE(tids) ;
-pthread_attr_destroy(&attr) ;
 }
-#endif
 /*
    ---------------------
    free the working data

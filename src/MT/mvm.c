@@ -1,6 +1,7 @@
 /*  mvm.c  */
 
 #include "spoolesMT.h"
+#include "SpoolesThread.h"
 #include "timings.h"
 
 /*--------------------------------------------------------------------*/
@@ -236,45 +237,31 @@ MARKTIME(t2) ;
 if ( msglvl > 0 ) {
    fprintf(msgFile, "\n %% CPU %8.3f : setup time", t2 - t1) ;
 }
-#if THREAD_TYPE == TT_POSIX 
 {
-pthread_t        *tids ;
-pthread_attr_t   attr  ;
-void             *status ;
-/*
-#####   NOTE: for SGI machines, this command must be present
-#####         for the thread scheduling to be efficient.
-#####         this is NOT a POSIX call, but SGI needs it anyway
-pthread_setconcurrency(nthread) ;
-*/
-pthread_attr_init(&attr) ;
-/*
-pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) ;
-*/
-pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS) ;
-ALLOCATE(tids, pthread_t, nthread) ;
+SpoolesThread    *tids ;
+ALLOCATE(tids, SpoolesThread, nthread) ;
 MARKTIME(t1) ;
 for ( myid = 0, obj = MTmvmObjs ; myid < nthread ; myid++, obj++ ) {
    switch ( flag ) {
    case NONSYM :
-      rc = pthread_create(&tids[myid], &attr, worker_nonsym_mmm, obj) ;
+      rc = SpoolesThread_create(&tids[myid], worker_nonsym_mmm, obj) ;
       break ;
    case SYM :
-      rc = pthread_create(&tids[myid], &attr, worker_sym_mmm, obj) ;
+      rc = SpoolesThread_create(&tids[myid], worker_sym_mmm, obj) ;
       break ;
    case HERM :
-      rc = pthread_create(&tids[myid], &attr, worker_herm_mmm, obj) ;
+      rc = SpoolesThread_create(&tids[myid], worker_herm_mmm, obj) ;
       break ;
    case NONSYM_T :
-      rc = pthread_create(&tids[myid], &attr, worker_nonsym_mmm_T, obj);
+      rc = SpoolesThread_create(&tids[myid], worker_nonsym_mmm_T, obj);
       break ;
    case NONSYM_H :
-      rc = pthread_create(&tids[myid], &attr, worker_nonsym_mmm_H, obj);
+      rc = SpoolesThread_create(&tids[myid], worker_nonsym_mmm_H, obj);
       break ;
    }
    if ( rc != 0 ) {
       fprintf(stderr, 
-           "\n fatal error, myid = %d, rc = %d from pthread_create",
+           "\n fatal error, myid = %d, rc = %d from SpoolesThread_create",
            myid, rc) ;
       exit(-1) ;
    } else if ( msglvl > 2 ) {
@@ -287,16 +274,20 @@ if ( msglvl > 0 ) {
 }
 MARKTIME(t1) ;
 for ( myid = 0 ; myid < nthread ; myid++ ) {
-   pthread_join(tids[myid], &status) ;
+   rc = SpoolesThread_join(&tids[myid]) ;
+   if ( rc != 0 ) {
+      fprintf(stderr,
+              "\n fatal error, myid = %d, rc = %d from SpoolesThread_join",
+              myid, rc) ;
+      exit(-1) ;
+   }
 }
 MARKTIME(t2) ;
 if ( msglvl > 0 ) {
    fprintf(msgFile, "\n %% CPU %8.3f : thread join time", t2 - t1) ;
 }
 FREE(tids) ;
-pthread_attr_destroy(&attr) ;
 }
-#endif
 /*
    -------------------------------------
    accumulate the rhs hand side matrices

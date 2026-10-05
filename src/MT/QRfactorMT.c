@@ -1,6 +1,7 @@
 /*  QRfactorMT.c  */
 
 #include "spoolesMT.h"
+#include "SpoolesThread.h"
 #include "Ideq.h"
 #include "timings.h"
 
@@ -173,7 +174,6 @@ for ( myid = 0 ; myid < nthread - 1 ; myid++ ) {
    thr_join(0, 0, 0) ;
 }
 #endif
-#if THREAD_TYPE == TT_POSIX
 /*
    ----------------------------------
    POSIX threads.
@@ -183,40 +183,20 @@ for ( myid = 0 ; myid < nthread - 1 ; myid++ ) {
    ----------------------------------
 */
 {
-pthread_t        *tids ;
-pthread_attr_t   attr  ;
-void             *status ;
-/*
-   ---------------------------------------------------------
-   #### NOTE: for SGI machines, this command must be present
-   ####       for the thread scheduling to be efficient.
-   ####       this is NOT a POSIX call, but necessary
-   ---------------------------------------------------------
-   pthread_setconcurrency(nthread) ;
-*/
-   pthread_attr_init(&attr) ;
-/*
-   pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) ;
-*/
-   pthread_attr_setscope(&attr, PTHREAD_SCOPE_PROCESS) ;
-   ALLOCATE(tids, pthread_t, nthread) ;
+SpoolesThread    *tids ;
+   ALLOCATE(tids, SpoolesThread, nthread) ;
    for ( myid = 0 ; myid < nthread ; myid++ ) {
-#ifdef _MSC_VER
-      tids[myid].p = 0;
-      tids[myid].x = 0;
-#else
-      tids[myid] = 0 ;
-#endif
+      tids[myid].handle = NULL ;
    }
    for ( myid = 0, data = dataObjects ; 
          myid < nthread ; 
          myid++, data++ ) {
-      rc = pthread_create(&tids[myid], &attr,
-                          FrontMtx_QR_workerFactor, data) ;
+      rc = SpoolesThread_create(&tids[myid],
+                                FrontMtx_QR_workerFactor, data) ;
       if ( rc != 0 ) {
          fprintf(stderr,
                  "\n fatal error in FrontMtx_MT_QR_factor()"
-                 "\n myid = %d, rc = %d from pthread_create()",
+                 "\n myid = %d, rc = %d from SpoolesThread_create()",
                  myid, rc) ;
          exit(-1) ;
       } else if ( msglvl > 2 ) {
@@ -224,12 +204,17 @@ void             *status ;
       }
    }
    for ( myid = 0 ; myid < nthread ; myid++ ) {
-      pthread_join(tids[myid], &status) ;
+      rc = SpoolesThread_join(&tids[myid]) ;
+      if ( rc != 0 ) {
+         fprintf(stderr,
+                 "\n fatal error in FrontMtx_MT_QR_factor()"
+                 "\n myid = %d, rc = %d from SpoolesThread_join()",
+                 myid, rc) ;
+         exit(-1) ;
+      }
    }
    FREE(tids) ;
-   pthread_attr_destroy(&attr) ;
 }
-#endif
 /*
    ----------------------------------------------
    fill the cpu vector and factor operation count

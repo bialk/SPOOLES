@@ -32,7 +32,6 @@ set(BPG_SRCS
   BPG/makeGraphs.c
   BPG/maxFlow.c
   BPG/pseudo.c
-  CMakeLists.txt
   )
 
 set(Chv_SRCS
@@ -55,7 +54,6 @@ set(ChvList_SRCS
   ChvList/basics.c
   ChvList/init.c
   ChvList/util.c
-  ChvManager
   ChvManager/IO.c
   ChvManager/basics.c
   ChvManager/init.c
@@ -272,6 +270,7 @@ set(Iter_SRCS
   )
 
 set(Lock_SRCS
+  Lock/SpoolesThread.cpp
   Lock/basics.c
   Lock/init.c
   Lock/util.c
@@ -309,7 +308,6 @@ set(Network_SRCS
   Network/findMaxFlow.c
   Network/findMincut.c
   Network/init.c
-  PatchAndGoInfo
   PatchAndGoInfo/basics.c
   PatchAndGoInfo/init.c
   )
@@ -483,9 +481,34 @@ set(MPI_SRCS
   )
 
 add_library(spooles ${SPOOLES_SRCS})
-target_compile_options(spooles PRIVATE "-D_TIMESPEC_DEFINED")
-target_include_directories(spooles PRIVATE "${pthread_INCLUDE_DIR}"
-                                   PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")
+add_library(SPOOLES::spooles ALIAS spooles)
+
+target_compile_features(spooles PUBLIC cxx_std_11)
+if(WIN32)
+  target_compile_definitions(spooles PRIVATE _TIMESPEC_DEFINED)
+endif()
+target_include_directories(spooles PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_link_libraries(spooles PUBLIC Threads::Threads)
+
+if(UNIX)
+  target_link_libraries(spooles PUBLIC m)
+endif()
+
+set_target_properties(spooles PROPERTIES
+  DEBUG_POSTFIX d
+  POSITION_INDEPENDENT_CODE ON)
+
+install(TARGETS spooles
+  EXPORT SPOOLESTargets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.h")
 
 # Local Variables:
 # tab-width: 8
@@ -493,5 +516,3 @@ target_include_directories(spooles PRIVATE "${pthread_INCLUDE_DIR}"
 # indent-tabs-mode: t
 # End:
 # ex: shiftwidth=2 tabstop=8
-
-

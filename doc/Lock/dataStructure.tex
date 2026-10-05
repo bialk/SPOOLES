@@ -10,8 +10,8 @@ The {\tt Lock} structure has three fields.
 \par
 For Solaris threads we have {\tt mutex\_t *mutex}.
 \par
-For POSIX threads we have {\tt pthread\_mutex\_t *mutex}.
+The mutex is stored as an opaque pointer and implemented by the C++
+platform layer using {\tt std::mutex}.
 \par
 For no threads we have {\tt void *mutex}.
 \end{itemize}
-

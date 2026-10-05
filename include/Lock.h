@@ -8,16 +8,9 @@
 #define TT_NONE    0
 #define TT_SOLARIS 1
 #define TT_POSIX   2
- 
-#define THREAD_TYPE TT_POSIX
- 
-#if THREAD_TYPE == TT_SOLARIS
-#include <thread.h>
-#include <synch.h>
-#endif
-#if THREAD_TYPE == TT_POSIX
-#include <pthread.h>
-#endif
+#define TT_STD     3
+
+#define THREAD_TYPE TT_STD
 
 #define NO_LOCK                  0
 #define LOCK_IN_PROCESS          1
@@ -38,15 +31,7 @@
 */
 typedef struct _Lock   Lock ;
 struct _Lock {
-#if THREAD_TYPE == TT_SOLARIS
-   mutex_t   *mutex ;
-#endif
-#if THREAD_TYPE == TT_POSIX
-   pthread_mutex_t   *mutex ;
-#endif
-#if THREAD_TYPE == TT_NONE
    void   *mutex ;
-#endif
    int    nlocks   ;
    int    nunlocks ;
 } ;

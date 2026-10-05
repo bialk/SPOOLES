@@ -41,7 +41,7 @@ This method clears the data for the object.
 If {\tt lock->mutex} is not {\tt NULL}, 
 then {\tt mutex\_destroy(lock->mutex)} is called 
 (for the Solaris thread package)
-or {\tt pthread\_mutex\_destroy(lock->mutex)} is called 
+or the standard C++ mutex wrapper is destroyed
 (for the POSIX thread package),
 The method concludes with a call to {\tt Lock\_setDefaultFields()}.
 \par \noindent {\it Error checking:}
