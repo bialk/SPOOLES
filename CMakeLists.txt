@@ -18,11 +18,15 @@ endif()
 project(SPOOLES VERSION 2.2 LANGUAGES C CXX)
 
 option(SPOOLES_ENABLE_TESTING "Build SPOOLES tests" ON)
+option(SPOOLES_ENABLE_MPI "Build SPOOLES MPI support" OFF)
 
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 include(GNUInstallDirs)
 find_package(Threads REQUIRED)
+if(SPOOLES_ENABLE_MPI)
+  find_package(MPI REQUIRED COMPONENTS C)
+endif()
 
 add_subdirectory(src)
 
@@ -30,6 +34,9 @@ if(SPOOLES_ENABLE_TESTING)
   enable_testing()
   add_subdirectory(src/A2/tests)
   add_subdirectory(src/Lock/tests)
+  if(SPOOLES_ENABLE_MPI)
+    add_subdirectory(src/MPI/tests)
+  endif()
 endif()
 
 include(CMakePackageConfigHelpers)

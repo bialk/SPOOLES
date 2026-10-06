@@ -17,7 +17,7 @@ maxTagMPI (
 int   *iptr, flag, rc, tag_bound ;
 
 iptr = &tag_bound ;
-rc = MPI_Attr_get(comm, MPI_TAG_UB, (void **) &iptr, &flag) ;
+rc = MPI_Comm_get_attr(comm, MPI_TAG_UB, (void **) &iptr, &flag) ;
 if ( flag == 0 ) {
    tag_bound = -1 ;
 } else {

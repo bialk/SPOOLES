@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [ValidateRange(1, 1024)]
-    [int]$Jobs = [Environment]::ProcessorCount
+    [int]$Jobs = [Environment]::ProcessorCount,
+    [switch]$MPI
 )
 
 $ErrorActionPreference = 'Stop'
@@ -80,12 +81,13 @@ if (-not (Test-Path -LiteralPath $clangCompiler)) {
     throw "LLVM compiler was not found at $clangCompiler"
 }
 
-$presets = @(
-    'msvc-debug',
-    'msvc-release',
-    'llvm-debug',
-    'llvm-release'
-)
+if ($MPI) {
+    $presets = @('msvc-mpi-debug', 'msvc-mpi-release',
+                 'llvm-mpi-debug', 'llvm-mpi-release')
+} else {
+    $presets = @('msvc-debug', 'msvc-release',
+                 'llvm-debug', 'llvm-release')
+}
 
 Push-Location $sourceDirectory
 try {

@@ -2,11 +2,24 @@
 
 set -euo pipefail
 
-jobs="${1:-$(nproc)}"
-if [[ ! "$jobs" =~ ^[1-9][0-9]*$ ]]; then
-    echo "Usage: $0 [positive-job-count]" >&2
-    exit 2
+if command -v nproc >/dev/null 2>&1; then
+    jobs="$(nproc)"
+elif command -v getconf >/dev/null 2>&1; then
+    jobs="$(getconf _NPROCESSORS_ONLN)"
+else
+    jobs="${NUMBER_OF_PROCESSORS:-1}"
 fi
+mpi_enabled=false
+for argument in "$@"; do
+    case "$argument" in
+        --mpi) mpi_enabled=true ;;
+        ''|*[!0-9]*)
+            echo "Usage: $0 [--mpi] [positive-job-count]" >&2
+            exit 2 ;;
+        0) echo 'The job count must be positive.' >&2; exit 2 ;;
+        *) jobs="$argument" ;;
+    esac
+done
 
 source_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -W)"
 common_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -W)/spooles-install-std-thread"
@@ -49,12 +62,11 @@ if ! command -v cl.exe >/dev/null 2>&1; then
     exit 1
 fi
 
-presets=(
-    msvc-debug
-    msvc-release
-    llvm-debug
-    llvm-release
-)
+if $mpi_enabled; then
+    presets=(msvc-mpi-debug msvc-mpi-release llvm-mpi-debug llvm-mpi-release)
+else
+    presets=(msvc-debug msvc-release llvm-debug llvm-release)
+fi
 
 cd "$source_directory"
 for preset in "${presets[@]}"; do

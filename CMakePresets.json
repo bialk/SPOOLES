@@ -39,6 +39,19 @@
       }
     },
     {
+      "name": "msmpi-base",
+      "hidden": true,
+      "environment": {
+        "MSMPI_BIN": "C:/Program Files/Microsoft MPI/Bin",
+        "MSMPI_INC": "C:/Program Files (x86)/Microsoft SDKs/MPI/Include",
+        "MSMPI_LIB64": "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64"
+      },
+      "cacheVariables": {
+        "MPI_GUESS_LIBRARY_NAME": "MSMPI",
+        "SPOOLES_ENABLE_MPI": true
+      }
+    },
+    {
       "name": "msvc-debug",
       "displayName": "MSVC Debug",
       "inherits": "msvc-base",
@@ -73,13 +86,37 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_INSTALL_PREFIX": "${sourceParentDir}/spooles-install-std-thread/install/llvm"
       }
+    },
+    {
+      "name": "msvc-mpi-debug",
+      "displayName": "MSVC MPI Debug",
+      "inherits": ["msvc-debug", "msmpi-base"]
+    },
+    {
+      "name": "msvc-mpi-release",
+      "displayName": "MSVC MPI Release",
+      "inherits": ["msvc-release", "msmpi-base"]
+    },
+    {
+      "name": "llvm-mpi-debug",
+      "displayName": "LLVM MPI Debug",
+      "inherits": ["llvm-debug", "msmpi-base"]
+    },
+    {
+      "name": "llvm-mpi-release",
+      "displayName": "LLVM MPI Release",
+      "inherits": ["llvm-release", "msmpi-base"]
     }
   ],
   "buildPresets": [
     { "name": "msvc-debug", "configurePreset": "msvc-debug" },
     { "name": "msvc-release", "configurePreset": "msvc-release" },
     { "name": "llvm-debug", "configurePreset": "llvm-debug" },
-    { "name": "llvm-release", "configurePreset": "llvm-release" }
+    { "name": "llvm-release", "configurePreset": "llvm-release" },
+    { "name": "msvc-mpi-debug", "configurePreset": "msvc-mpi-debug" },
+    { "name": "msvc-mpi-release", "configurePreset": "msvc-mpi-release" },
+    { "name": "llvm-mpi-debug", "configurePreset": "llvm-mpi-debug" },
+    { "name": "llvm-mpi-release", "configurePreset": "llvm-mpi-release" }
   ],
   "testPresets": [
     {
@@ -90,6 +127,10 @@
     { "name": "msvc-debug", "inherits": "test-base", "configurePreset": "msvc-debug" },
     { "name": "msvc-release", "inherits": "test-base", "configurePreset": "msvc-release" },
     { "name": "llvm-debug", "inherits": "test-base", "configurePreset": "llvm-debug" },
-    { "name": "llvm-release", "inherits": "test-base", "configurePreset": "llvm-release" }
+    { "name": "llvm-release", "inherits": "test-base", "configurePreset": "llvm-release" },
+    { "name": "msvc-mpi-debug", "inherits": "test-base", "configurePreset": "msvc-mpi-debug" },
+    { "name": "msvc-mpi-release", "inherits": "test-base", "configurePreset": "msvc-mpi-release" },
+    { "name": "llvm-mpi-debug", "inherits": "test-base", "configurePreset": "llvm-mpi-debug" },
+    { "name": "llvm-mpi-release", "inherits": "test-base", "configurePreset": "llvm-mpi-release" }
   ]
 }

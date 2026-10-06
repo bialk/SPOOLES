@@ -19,6 +19,7 @@ IV_MPI_Bcast (
    FILE       *msgFile,
    MPI_Comm   comm
 ) {
+int   myid ;
 /*
    ---------------
    check the input

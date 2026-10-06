@@ -480,6 +480,10 @@ set(MPI_SRCS
   MPI/utilities.c
   )
 
+if(SPOOLES_ENABLE_MPI)
+  list(APPEND SPOOLES_SRCS ${MPI_SRCS})
+endif()
+
 add_library(spooles ${SPOOLES_SRCS})
 add_library(SPOOLES::spooles ALIAS spooles)
 
@@ -491,6 +495,13 @@ target_include_directories(spooles PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(spooles PUBLIC Threads::Threads)
+if(SPOOLES_ENABLE_MPI)
+  # Keep the vendor MPI headers before SPOOLES' legacy MPI.h wrapper. This is
+  # essential on case-insensitive filesystems where MPI.h and mpi.h collide.
+  target_include_directories(spooles SYSTEM BEFORE PUBLIC ${MPI_C_INCLUDE_DIRS})
+  target_link_libraries(spooles PUBLIC MPI::MPI_C)
+  target_compile_definitions(spooles PUBLIC SPOOLES_HAVE_MPI=1)
+endif()
 
 if(UNIX)
   target_link_libraries(spooles PUBLIC m)
@@ -508,7 +519,9 @@ install(TARGETS spooles
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../include/"
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  FILES_MATCHING PATTERN "*.h")
+  FILES_MATCHING
+  PATTERN "*.h"
+  PATTERN "MPI.h" EXCLUDE)
 
 # Local Variables:
 # tab-width: 8

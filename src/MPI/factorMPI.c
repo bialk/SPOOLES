@@ -665,7 +665,7 @@ msg->info[1] =   0  ;
 msg->info[2] =   0  ;
 msg->base    = NULL ;
 msg->chv     = NULL ;
-msg->req     = NULL ;
+msg->req     = MPI_REQUEST_NULL ;
 msg->next    = NULL ;
 
 return ; }
